@@ -161,12 +161,6 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
     let outer_start = Instant::now();
     for _ in 0..settings.inner_iterations {
         let inner_start = Instant::now();
-        if settings.debug {
-            // spare the connection some bandwidth in general use
-            let qpgs0 = inverter.execute::<QPGS0>(()).await?;
-            publish_update(&mqtt_client, &settings.mqtt, "qpgs0", serde_json::to_string(&qpgs0)?).await?;
-            sleep(Duration::from_secs(2));
-        }
         // main update loop for phocos
         if settings.mode == String::from("phocos") {
             for index in 0..settings.inverter_count {
@@ -174,6 +168,7 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
                     0 => {
                         if settings.debug {
                             inverter.execute::<QPGS0>(()).await?;
+                            sleep(Duration::from_secs(2));
                         }
                     }
                     1 => {
@@ -188,6 +183,14 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
                     publish_update(&mqtt_client, &settings.mqtt, &format!("qpgs{}", index), serde_json::to_string(&qpgs)?).await?;
                 }
             }
+        }    
+        // QPIRI    - Device Rating Information Inquiry
+        if settings.mode != String::from("phocos") {
+            let qpiri = inverter.execute::<QPIRI>(()).await?;
+            publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
+        } else {
+            let qpiri = inverter.execute::<QPIRIReduced>(()).await?;
+            publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
         }
 
         // QPIGS    - Device general status parameters inquiry
@@ -208,14 +211,6 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
     // QMOD     -  Device Mode Inquiry
     let qmod = inverter.execute::<QMOD>(()).await?;
     publish_update(&mqtt_client, &settings.mqtt, "qmod", serde_json::to_string(&qmod)?).await?;
-    // QPIRI    - Device Rating Information Inquiry
-    if settings.mode != String::from("phocos") {
-        let qpiri = inverter.execute::<QPIRI>(()).await?;
-        publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
-    } else {
-        let qpiri = inverter.execute::<QPIRIReduced>(()).await?;
-        publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
-    }
     // QPIWS    - Device Warning Status Inquiry
     let qpiws = inverter.execute::<QPIWS>(()).await?;
     publish_update(&mqtt_client, &settings.mqtt, "qpiws", serde_json::to_string(&qpiws)?).await?;
