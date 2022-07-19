@@ -11,8 +11,8 @@ use masterpower_api::commands::qmod::QMOD;
 use masterpower_api::commands::qpgs::{QPGS0, QPGS1, QPGS2};
 use masterpower_api::commands::qpi::QPI;
 use masterpower_api::commands::qpigs::QPIGS;
-use masterpower_api::commands::qpiri::QPIRI;
 use masterpower_api::commands::qpiri::QPIRIReduced;
+use masterpower_api::commands::qpiri::QPIRI;
 use masterpower_api::commands::qpiws::QPIWS;
 use masterpower_api::commands::qvfw::QVFW;
 // use masterpower_api::commands::qvfw2::QVFW2;
@@ -163,27 +163,19 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
         let inner_start = Instant::now();
         // main update loop for phocos
         if settings.mode == String::from("phocos") {
-            for index in 0..settings.inverter_count {
+            let start_index = if settings.debug { 0 } else { 1 };
+            for index in start_index..settings.inverter_count {
                 let qpgs = match index {
-                    0 => {
-                        if settings.debug {
-                            inverter.execute::<QPGS0>(()).await?;
-                            sleep(Duration::from_secs(2));
-                        }
-                    }
-                    1 => {
-                        inverter.execute::<QPGS1>(()).await?;
-                    }
-                    2 => {
-                        inverter.execute::<QPGS2>(()).await?;
-                    }
+                    0 => inverter.execute::<QPGS0>(()).await?,
+                    1 => inverter.execute::<QPGS1>(()).await?,
+                    2 => inverter.execute::<QPGS2>(()).await?,
                     _ => unimplemented!(),
                 };
                 if (settings.debug && index == 0) || index != 0 {
                     publish_update(&mqtt_client, &settings.mqtt, &format!("qpgs{}", index), serde_json::to_string(&qpgs)?).await?;
                 }
             }
-        }    
+        }
         // QPIRI    - Device Rating Information Inquiry
         if settings.mode != String::from("phocos") {
             let qpiri = inverter.execute::<QPIRI>(()).await?;
