@@ -12,6 +12,7 @@ use masterpower_api::commands::qpgs::{QPGS0, QPGS1, QPGS2};
 use masterpower_api::commands::qpi::QPI;
 use masterpower_api::commands::qpigs::QPIGS;
 use masterpower_api::commands::qpiri::QPIRI;
+use masterpower_api::commands::qpiri::QPIRIReduced;
 use masterpower_api::commands::qpiws::QPIWS;
 use masterpower_api::commands::qvfw::QVFW;
 // use masterpower_api::commands::qvfw2::QVFW2;
@@ -209,8 +210,10 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
     publish_update(&mqtt_client, &settings.mqtt, "qmod", serde_json::to_string(&qmod)?).await?;
     // QPIRI    - Device Rating Information Inquiry
     if settings.mode != String::from("phocos") {
-        // TODO I think it could be implemented for phocos, just needs some work
         let qpiri = inverter.execute::<QPIRI>(()).await?;
+        publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
+    } else {
+        let qpiri = inverter.execute::<QPIRIReduced>(()).await?;
         publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
     }
     // QPIWS    - Device Warning Status Inquiry

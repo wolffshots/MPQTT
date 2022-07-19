@@ -40,26 +40,28 @@ pub async fn run_mqtt_discovery(client: &Client, cfg: &MqttSettings, inverter_co
     // Register QPIRI Sensors
     register_sensor(client, cfg, "qpiri", "grid_rating_voltage", "Grid Rating Voltage", Some("V".to_string()), "power-plug").await?;
     register_sensor(client, cfg, "qpiri", "grid_rating_current", "Grid Rating Current", Some("A".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "ac_output_rating_voltage", "AC Output Rating Voltage", Some("V".to_string()), "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "ac_out_rating_frequency", "AC Output Rating Frequency", Some("Hz".to_string()), "current-ac").await?;
-    register_sensor(client, cfg, "qpiri", "ac_out_rating_current", "AC Output Rating Current", Some("A".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "ac_out_rating_apparent_power", "AC Output Rating Apparent Power", Some("W".to_string()), "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "ac_out_rating_active_power", "AC Output Rating Active Voltage", Some("W".to_string()), "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "battery_rating_voltage", "Battery Rating Voltage", Some("V".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "battery_recharge_voltage", "Battery Recharge Voltage", Some("V".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "battery_under_voltage", "Battery Under Voltage", Some("V".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "battery_bulk_voltage", "Battery Bulk Voltage", Some("V".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "battery_float_voltage", "Battery Float Voltage", Some("V".to_string()), "current-dc").await?;
-    register_sensor(client, cfg, "qpiri", "battery_redischarge_voltage", "Battery Redischarge Voltage", Some("V".to_string()), "battery-negative").await?;
-    register_sensor(client, cfg, "qpiri", "battery_type", "Battery Type", None, "battery").await?;
-    register_sensor(client, cfg, "qpiri", "max_ac_charging_current", "Max AC Charging Current", Some("A".to_string()), "current-ac").await?;
-    register_sensor(client, cfg, "qpiri", "max_charging_current", "Max Charging Current", Some("A".to_string()), "current-ac").await?;
-    register_sensor(client, cfg, "qpiri", "input_voltage_range", "Input Voltage range", None, "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "output_source_priority", "Output Source Priority", None, "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "charge_source_priority", "Charge Source Priority", None, "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "machine_type", "Machine Type", None, "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "topology", "Topology", None, "power-plug").await?;
-    register_sensor(client, cfg, "qpiri", "output_mode", "Output mode", None, "power-plug").await?;
+    if mode != "phocos" {
+        register_sensor(client, cfg, "qpiri", "ac_output_rating_voltage", "AC Output Rating Voltage", Some("V".to_string()), "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "ac_out_rating_frequency", "AC Output Rating Frequency", Some("Hz".to_string()), "current-ac").await?;
+        register_sensor(client, cfg, "qpiri", "ac_out_rating_current", "AC Output Rating Current", Some("A".to_string()), "current-dc").await?;
+        register_sensor(client, cfg, "qpiri", "ac_out_rating_apparent_power", "AC Output Rating Apparent Power", Some("W".to_string()), "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "ac_out_rating_active_power", "AC Output Rating Active Voltage", Some("W".to_string()), "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "battery_rating_voltage", "Battery Rating Voltage", Some("V".to_string()), "current-dc").await?;
+        register_sensor(client, cfg, "qpiri", "battery_recharge_voltage", "Battery Recharge Voltage", Some("V".to_string()), "current-dc").await?;
+        register_sensor(client, cfg, "qpiri", "battery_under_voltage", "Battery Under Voltage", Some("V".to_string()), "current-dc").await?;
+        register_sensor(client, cfg, "qpiri", "battery_bulk_voltage", "Battery Bulk Voltage", Some("V".to_string()), "current-dc").await?;
+        register_sensor(client, cfg, "qpiri", "battery_float_voltage", "Battery Float Voltage", Some("V".to_string()), "current-dc").await?;
+        register_sensor(client, cfg, "qpiri", "battery_redischarge_voltage", "Battery Redischarge Voltage", Some("V".to_string()), "battery-negative").await?;
+        register_sensor(client, cfg, "qpiri", "battery_type", "Battery Type", None, "battery").await?;
+        register_sensor(client, cfg, "qpiri", "max_ac_charging_current", "Max AC Charging Current", Some("A".to_string()), "current-ac").await?;
+        register_sensor(client, cfg, "qpiri", "max_charging_current", "Max Charging Current", Some("A".to_string()), "current-ac").await?;
+        register_sensor(client, cfg, "qpiri", "input_voltage_range", "Input Voltage range", None, "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "output_source_priority", "Output Source Priority", None, "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "charge_source_priority", "Charge Source Priority", None, "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "machine_type", "Machine Type", None, "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "topology", "Topology", None, "power-plug").await?;
+        register_sensor(client, cfg, "qpiri", "output_mode", "Output mode", None, "power-plug").await?;
+    }
 
     // Register QPIGS Sensors
     if mode != "phocos" {
