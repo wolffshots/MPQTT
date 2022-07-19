@@ -1,4 +1,9 @@
 debug: true
+outer_delay: 10
+inner_delay: 30
+error_delay: 30
+inner_iterations: 10
+mode: phocos
 
 inverter:
   path: /dev/hidraw0

@@ -34,8 +34,13 @@ pub struct MqttSettings {
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub debug: bool,
+    pub outer_delay: u64,
+    pub inner_delay: u64,
+    pub error_delay: u64,
+    pub inner_iterations: u64,
     pub inverter: InverterSettings,
     pub mqtt: MqttSettings,
+    pub mode: String,
 }
 
 impl Settings {
