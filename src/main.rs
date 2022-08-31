@@ -8,7 +8,7 @@ use settings::Settings;
 
 use masterpower_api::commands::qid::QID;
 use masterpower_api::commands::qmod::QMOD;
-use masterpower_api::commands::qpgs::{QPGS0, QPGS1, QPGS2};
+use masterpower_api::commands::qpgs::{QPGS0, QPGS1, QPGS2, QPGS3, QPGS4, QPGS5, QPGS6, QPGS7, QPGS8, QPGS9};
 use masterpower_api::commands::qpi::QPI;
 use masterpower_api::commands::qpigs::QPIGS;
 use masterpower_api::commands::qpiri::QPIRIReduced;
@@ -159,16 +159,23 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
     // Start update
     debug!("Starting new update");
     let outer_start = Instant::now();
+    // QPGSn    - Device general status parameters inquiry
     for _ in 0..settings.inner_iterations {
         let inner_start = Instant::now();
-        // main update loop for phocos
         if settings.mode == String::from("phocos") {
             let start_index = if settings.debug { 0 } else { 1 };
-            for index in start_index..settings.inverter_count {
+            for index in start_index..=settings.inverter_count {
                 let qpgs = match index {
                     0 => inverter.execute::<QPGS0>(()).await?,
                     1 => inverter.execute::<QPGS1>(()).await?,
                     2 => inverter.execute::<QPGS2>(()).await?,
+                    3 => inverter.execute::<QPGS3>(()).await?,
+                    4 => inverter.execute::<QPGS4>(()).await?,
+                    5 => inverter.execute::<QPGS5>(()).await?,
+                    6 => inverter.execute::<QPGS6>(()).await?,
+                    7 => inverter.execute::<QPGS7>(()).await?,
+                    8 => inverter.execute::<QPGS8>(()).await?,
+                    9 => inverter.execute::<QPGS9>(()).await?,
                     _ => unimplemented!(),
                 };
                 if (settings.debug && index == 0) || index != 0 {
@@ -176,22 +183,14 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
                 }
             }
         }
-        // QPIRI    - Device Rating Information Inquiry
-        if settings.mode != String::from("phocos") {
-            let qpiri = inverter.execute::<QPIRI>(()).await?;
-            publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
-        } else {
-            let qpiri = inverter.execute::<QPIRIReduced>(()).await?;
-            publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
-        }
 
         // QPIGS    - Device general status parameters inquiry
         if settings.mode != String::from("phocos") {
             let qpigs = inverter.execute::<QPIGS>(()).await?;
             publish_update(&mqtt_client, &settings.mqtt, "qpigs", serde_json::to_string(&qpigs)?).await?;
         }
-        // TODO calculate average for this for the stats sensor
-        // ^ only relevant if we are using a singular "StatsSensor"
+
+        // inner loop reporting
         let inner_time = inner_start.elapsed().as_millis();
         info!("Partial update took {}ms - sleeping for {}s", inner_time, settings.inner_delay);
         // inner_loop_duration can essentially be our heartbeat
@@ -203,9 +202,19 @@ async fn update(inverter: &mut Inverter<File>, mqtt_client: &MQTTClient, setting
     // QMOD     -  Device Mode Inquiry
     let qmod = inverter.execute::<QMOD>(()).await?;
     publish_update(&mqtt_client, &settings.mqtt, "qmod", serde_json::to_string(&qmod)?).await?;
+
     // QPIWS    - Device Warning Status Inquiry
     let qpiws = inverter.execute::<QPIWS>(()).await?;
     publish_update(&mqtt_client, &settings.mqtt, "qpiws", serde_json::to_string(&qpiws)?).await?;
+
+    // QPIRI    - Device Rating Information Inquiry
+    if settings.mode != String::from("phocos") {
+        let qpiri = inverter.execute::<QPIRI>(()).await?;
+        publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
+    } else {
+        let qpiri = inverter.execute::<QPIRIReduced>(()).await?;
+        publish_update(&mqtt_client, &settings.mqtt, "qpiri", serde_json::to_string(&qpiri)?).await?;
+    }
 
     // Report update completed
     let outer_time = outer_start.elapsed().as_millis();
